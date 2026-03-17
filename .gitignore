@@ -1,0 +1,23 @@
+# Dependencies — never push these
+node_modules/
+.npm
+
+# Next.js build output — Vercel rebuilds this
+.next/
+out/
+
+# Environment variables — NEVER push secrets
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
