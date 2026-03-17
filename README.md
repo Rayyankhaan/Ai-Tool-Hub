@@ -153,4 +153,4 @@ Edit `tailwind.config.js` — update the `brand` color palette.
 
 ---
 
-Built with ❤️ for AI enthusiasts worldwide.
+Built by Rayyan Khan 
