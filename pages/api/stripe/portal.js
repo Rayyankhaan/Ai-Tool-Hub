@@ -1,21 +1,20 @@
-// pages/api/stripe/portal.js
-// Redirects user to Stripe's self-serve portal to manage/cancel subscription
 import { stripe } from '../../../lib/stripe';
-import { getSupabaseAdmin } from '../../../lib/supabase';
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { getSupabaseAdmin, supabase } from '../../../lib/supabase';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const supabaseServer = createServerSupabaseClient({ req, res });
-    const { data: { session } } = await supabaseServer.auth.getSession();
-    if (!session) return res.status(401).json({ error: 'Not authenticated' });
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ error: 'Not authenticated' });
+
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) return res.status(401).json({ error: 'Session expired. Please log in again.' });
 
     const { data: profile } = await getSupabaseAdmin()
       .from('profiles')
       .select('stripe_customer_id')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (!profile?.stripe_customer_id) {
@@ -23,7 +22,6 @@ export default async function handler(req, res) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
       return_url: `${appUrl}/dashboard`,
